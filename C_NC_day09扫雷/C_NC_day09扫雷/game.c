@@ -14,7 +14,8 @@ void game()
 	DisplayBoard(mine, ROW, COL);  //布置雷后的显示
 	SafeFirst(mine, show, ROW, COL);
 	DisplayBoard(mine, ROW, COL);  //第一次保护后的雷区显示
-	FindMine(mine, show, ROW, COL);
+	//FindMine(mine, show, ROW, COL);
+	FindMinePlus(mine, show, ROW, COL);
 }
 
 void InitBoard(char board[ROWS][COLS], int rows, int cols, char set)
@@ -61,11 +62,12 @@ static int GetMineCount(char mine[ROWS][COLS], int x, int y)
 		mine[x][y + 1] + mine[x - 1][y + 1] - 8 * '0';
 }
 
+//有了展开函数之后，以下这个函数循环控制变量win的计算无法正确计算出已经排除的无雷个数
 void FindMine(char mine[ROWS][COLS], char show[ROWS][COLS], int row, int col)
 {
 	int x = 0, y = 0;
 	int win = 0;
-	while (win < row*col - EASY_COUNT)
+	while (win < row*col - EASY_COUNT - 1)  //有第一次的新手保护，额外再减1
 	{
 		printf("请输入你认为没有雷的坐标：");
 		scanf("%d%d", &x, &y);
@@ -89,11 +91,71 @@ void FindMine(char mine[ROWS][COLS], char show[ROWS][COLS], int row, int col)
 		else
 			printf("输入的坐标非法，请重新输入。\n");
 	}
-	if (win >= row*col - EASY_COUNT)
+	if (win >= row*col - EASY_COUNT - 1)
 	{
 		printf("恭喜您，游戏成功！\n");
 		DisplayBoard(mine, ROW, COL);
 	}
+}
+
+//返回未知位置的个数
+static int IsWin(char show[ROWS][COLS], int row, int col)
+{
+	int count = 0;
+	int i = 0, j = 0;
+	for (i = 0; i < row; i++)
+	{
+		for (j = 0; j < col; j++)
+		{
+			if (show[i][j] == '*')
+			{
+				count++;
+			}
+		}
+	}
+	return count;
+}
+
+void FindMinePlus(char mine[ROWS][COLS], char show[ROWS][COLS], int row, int col)
+{
+	int x = 0, y = 0;
+	if (IsWin(show, ROW, COL) == EASY_COUNT)
+	{
+		printf("恭喜您，游戏成功！\n");
+		//DisplayBoard(mine, ROW, COL);
+		goto end;
+	}
+	while (1)
+	{
+		printf("请输入你认为没有雷的坐标：");
+		scanf("%d%d", &x, &y);
+		if (x > 0 && x <= row && y > 0 && y <= col)
+		{
+			if (mine[x][y] == '1')
+			{
+				printf("很遗憾，该位置有雷，游戏失败。\n雷区标识如下（有雷为1，无则为0）：\n");
+				DisplayBoard(mine, ROW, COL);
+				break;
+			}
+			else
+			{
+				int minecount = GetMineCount(mine, x, y);
+				show[x][y] = minecount + '0';
+				OpenMine(mine, show, ROW, COL, x, y);
+				DisplayBoard(show, ROW, COL);
+				if (IsWin(show, ROW, COL) == EASY_COUNT)
+				{
+					printf("恭喜您，游戏成功！\n");
+					//DisplayBoard(mine, ROW, COL);
+					break;
+				}
+			}
+		}
+		else
+			printf("输入的坐标非法，请重新输入。\n");
+	}
+    end:
+	    ;
 }
 
 void SafeFirst(char mine[ROWS][COLS], char show[ROWS][COLS], int row, int col)
@@ -121,6 +183,11 @@ void SafeFirst(char mine[ROWS][COLS], char show[ROWS][COLS], int row, int col)
 			show[x][y] = minecount + '0';
 			OpenMine(mine, show, ROW, COL, x, y);
 			DisplayBoard(show, ROW, COL);
+			if (IsWin(show, ROW, COL) == EASY_COUNT)
+			{
+				printf("恭喜您，游戏成功！\n");
+				//DisplayBoard(mine, ROW, COL);
+			}
 		}
 		else
 		{
@@ -128,6 +195,11 @@ void SafeFirst(char mine[ROWS][COLS], char show[ROWS][COLS], int row, int col)
 			show[x][y] = minecount + '0';
 			OpenMine(mine, show, ROW, COL, x, y);
 			DisplayBoard(show, ROW, COL);
+			if (IsWin(show, ROW, COL) == EASY_COUNT)
+			{
+				printf("恭喜您，游戏成功！\n");
+				//DisplayBoard(mine, ROW, COL);
+			}
 		}
 	}
 	else
