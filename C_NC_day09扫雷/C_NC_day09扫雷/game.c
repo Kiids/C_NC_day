@@ -11,9 +11,9 @@ void game()
 	DisplayBoard(show, ROW, COL);
 	//DisplayBoard(mine, ROW, COL);
 	SetMine(mine, ROW, COL);
-	DisplayBoard(mine, ROW, COL);  //布置雷后的显示
+	//DisplayBoard(mine, ROW, COL);  //布置雷后的显示
 	SafeFirst(mine, show, ROW, COL);
-	DisplayBoard(mine, ROW, COL);  //第一次保护后的雷区显示
+	//DisplayBoard(mine, ROW, COL);  //第一次保护后的雷区显示
 	//FindMine(mine, show, ROW, COL);
 	FindMinePlus(mine, show, ROW, COL);
 }
