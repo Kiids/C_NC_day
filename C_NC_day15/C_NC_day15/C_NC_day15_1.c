@@ -1,5 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS 1
-#if 0
+#if 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +8,38 @@
 //一个数组中只有两个数字是出现一次，
 //其他所有数字都出现了两次。
 //找出这两个只出现一次的数字，编程实现。
+
+void find(int a[], int sz)
+{
+	int ret = 0;
+	int pos = 0;
+	int x = 0;
+	int y = 0;
+	for (int i = 0; i < sz; i++)
+	{
+		ret ^= a[i];
+	}
+	//找到ret中任意一个1的位置
+	for (int i = 0; i < 32; i++)
+	{
+		if ((ret >> i) & 1 == 1)
+		{
+			pos = i;
+			break;
+		}
+	}
+	//按照ret中第pos位是否为1，分为两组
+	for (int i = 0; i < sz; i++)
+	{
+		if ((a[i] >> pos) & 1 == 1)
+			x ^= a[i];
+		else
+			y ^= a[i];
+	}
+	printf("%d, %d\n", x, y);
+}
+
+
 void Find(int arr[], int size){
 	int i = 0;
 	int ret = 0;  //记录所有值异或的结果
