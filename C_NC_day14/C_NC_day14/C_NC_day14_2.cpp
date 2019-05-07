@@ -14,6 +14,45 @@
 //
 //AABCD右旋一个字符得到DAABC
 
+//解法1：利用_1的函数
+int isRotate(char* dest, char* src)
+{
+	int len = strlen(src);
+	while (len--)
+	{
+		left_move2(src, 1);
+		if (!strcmp(dest, src))
+			return 1;
+	}
+}
+//解法2：判断是否为字串   两个源字符串拼接之后包含所有旋转字符串为其字串
+int isRotate2(char* dest, char* src)
+{
+	//strcat(dest, dest);  //这个函数不能出现地址重叠，这样操作会使拼接时\0被覆盖，则这里程序会崩掉
+	strncat(dest, dest, strlen(dest));
+	if (strstr(dest, src) != NULL)
+		return 1;
+	return 0;
+}
+//模拟实现strstr
+const char* strStr(const char* dest, char* src)
+{
+	while (*dest)
+	{
+		const char* dst = dest;
+		const char* sc = src;
+		while (*dst && *sc && dst == sc)
+		{
+			++dst;
+			++sc;
+		}
+		if (*sc == '\0')
+			return dest;
+		dest++;
+	}
+	return NULL;
+}
+
 // 左旋 k 个字符
 void LeftRotate(char* s, int k) {
 	int len = strlen(s);
