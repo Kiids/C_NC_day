@@ -23,6 +23,10 @@
 //1 2 3
 //4 5 6
 //7 8 9
+//时间复杂度
+//遍历a[m][n]-->O(mn)
+//左下角，或者右上角m + n - 1 --> O(m + n)
+//左下角起点
 int find(int arr[ROW][ROW], int row, int k)
 {
 	int left = 0;
@@ -44,6 +48,21 @@ int find(int arr[ROW][ROW], int row, int k)
 	}
 	return 0;
 }
+//递归写法，右上角
+#define N 3
+int find_r(int a[][N], int row, int col, int x, int y, int key)
+{
+	//终止
+	if (x >= row || y < 0)
+		return 0;
+	if (a[x][y] == key)
+		return 1;
+	else if (key > a[x][y])
+		return find_r(a, row, col, x + 1, y, key);
+	else
+		return find_r(a, row, col, x, y - 1, key);
+}
+//find_r(a[N][N], N, N, 0, N - 1, key)
 int main()
 {
 	int arr[ROW][ROW] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
