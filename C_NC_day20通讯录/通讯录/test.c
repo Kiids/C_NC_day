@@ -53,8 +53,14 @@ void menu()
 	printf("\t    5.保存到文件     \n");
 	printf("\t    6.从文件加载     \n");
 	printf("\t    7.打印通讯录     \n");
+	printf("\t    8.按名字排序     \n");
 	printf("\t    0.退      出     \n");
 	printf("\t*********************\n");
+}
+
+int Comp(const Contact* p1, const Contact* p2)
+{
+	return strcmp(p1->_name, p2->_name);
 }
 
 int main()
@@ -138,13 +144,21 @@ int main()
 		else if (flag == 5)
 		{
 			ContactBookSave(&cb, "ContactBookBin.txt");
+			printf("成功保存到文件\n");
 		}
 		else if (flag == 6)
 		{
 			ContactBookLoad(&cb, "ContactBookBin.txt");
+			printf("成功从文件加载\n");
 		}
 		else if (flag == 7)
 		{
+			ContactPrint(&cb);
+		}
+		else if (flag == 8)
+		{
+			//按姓名排序
+			qsort(cb._con_array, cb._size, sizeof(cb._con_array[0]), Comp);
 			ContactPrint(&cb);
 		}
 		else if (flag == 0)
