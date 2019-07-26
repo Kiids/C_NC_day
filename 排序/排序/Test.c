@@ -7,9 +7,10 @@ int main()
 	//TestShellSort();;
 	//TestSelectSort();
 	//TestHeapSort();
-	//TestOP();
-	TestBubbleSort();
-	Test_BubbleSort();
+	//Test_BubbleSort();
+	//TestBubbleSort();
+	//TestQuickSort();
+	TestOP();
 
 	system("pause");
 	return 0;

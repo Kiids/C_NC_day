@@ -157,7 +157,7 @@ void TestHeapSort()
 
 // 交换排序
 // 冒泡排序
-void BubbleSort(int* a, int n)
+void _BubbleSort(int* a, int n)
 {
 	for (int i = 1; i < n; i++)
 		for (int j = 0; j < n - i; j++)
@@ -165,14 +165,7 @@ void BubbleSort(int* a, int n)
 				Swap(&a[j], &a[j + 1]);
 }
 
-void TestBubbleSort()
-{
-	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
-	BubbleSort(a, sizeof(a) / sizeof(int));
-	PrintArray(a, sizeof(a) / sizeof(int));
-}
-
-void _BubbleSort(int* a, int n)
+void __BubbleSort(int* a, int n)
 {
 	for (int i = 1; i < n; i++)
 	{
@@ -192,13 +185,136 @@ void Test_BubbleSort()
 {
 	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
 	_BubbleSort(a, sizeof(a) / sizeof(int));
+	__BubbleSort(a, sizeof(a) / sizeof(int));
+	PrintArray(a, sizeof(a) / sizeof(int));
+}
+
+void BubbleSort(int* a, int n)
+{
+	int end = n;
+	while (end > 0)
+	{
+		for (int i = 0; i < end; ++i)
+			if (a[i - 1] > a[i])
+				Swap(&a[i - 1], &a[i]);
+		--end;
+	}
+}
+
+void TestBubbleSort()
+{
+	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
+	BubbleSort(a, sizeof(a) / sizeof(int));
 	PrintArray(a, sizeof(a) / sizeof(int));
 }
 
 // 快速排序
+int PartSort1(int* a, int left, int right)  // 左右指针法
+{
+	int key = a[right];
+	int key_index = right;
+	while (left < right)
+	{
+		while (left < right && a[left] <= key)
+			++left;
+		while (left < right && a[right] >= key)
+			--right;
+
+		if (left < right)
+		{
+			Swap(&a[left], &a[right]);
+			++left;
+			--right;
+		}
+	}
+
+	Swap(&a[left], &a[key_index]);
+	return left;
+}
+
+int GetMidIndex(int*a, int left, int right)  // 三数取中法优化
+{
+	int mid = left + (right - left) / 2;
+	if (a[left] < a[mid])
+	{
+		if (a[mid] < a[right])
+			return mid;
+		else if (a[left] > a[right])
+			return left;
+		else
+			return right;
+	}
+	else
+	{
+		if (a[mid] > a[right])
+			return mid;
+		else if (a[left] < a[right])
+			return left;
+		else
+			return right;
+	}
+}
+
+int PartSort2(int* a, int left, int right)  // 挖坑法
+{
+	// 利用三数取中法进行算法的优化
+	// 当需要排序的序列有序时/最坏情况，三数取中法优化后得到的是完全二分的迭代，变成了最优情况
+	int mid = GetMidIndex(a, left, right);
+	Swap(&a[mid], &a[right]);
+
+	int key = a[right];
+	while (left < right)
+	{
+		while (left < right && a[left] <= key)
+			++left;
+		a[right] = a[left];
+
+		while (left < right && a[right] >= key)
+			--right;
+		a[left] = a[right];
+	}
+	a[right] = key;
+	return left;
+}
+
+void _QuickSort(int *a, int left, int right)
+{
+	if (left >= right)
+		return;
+
+	int keyindex = PartSort2(a, left, right);
+	_QuickSort(a, left, keyindex - 1);
+	_QuickSort(a, keyindex + 1, right);
+}
+
+void QuickSort(int *a, int left, int right)
+{
+	if (left >= right)
+		return;
+
+	// 小区间优化，迭代至区间小时改变排序算法，使用直接插入进行排序，减少迭代次数，从而优化算法
+	// 减少迭代次数的优化在debug版本下时间减少更明显，但是release版本时间变化可能不大，因为编译器对于release版已经进行过迭代次数的优化
+	if (right - left + 1 > 10)
+	{
+		//int keyindex = PartSort1(a, left, right);
+		int keyindex = PartSort2(a, left, right);
+		QuickSort(a, left, keyindex - 1);
+		QuickSort(a, keyindex + 1, right);
+	}
+	else
+		InsertSort(a + left, right - left + 1);
+}
+
+void TestQuickSort()
+{
+	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
+	QuickSort(a, 0, sizeof(a) / sizeof(int) - 1);
+	PrintArray(a, sizeof(a) / sizeof(int));
+}
+
 // 归并排序
 
-
+// 一般算法的性能测试会测试release版的，因为最终发布的版本是release版
 void TestOP()
 {
 	srand(time(0));
@@ -207,11 +323,13 @@ void TestOP()
 	int* a2 = (int*)malloc(sizeof(int)*N);
 	int* a3 = (int*)malloc(sizeof(int)*N);
 	int* a4 = (int*)malloc(sizeof(int)*N);
+	int* a5 = (int*)malloc(sizeof(int)*N);
+	int* a6 = (int*)malloc(sizeof(int)*N);
 
 	for (int i = 0; i < N; i++)
 	{
 		a1[i] = rand();
-		a4[i] = a3[i] = a2[i] = a1[i];
+		a6[i] = a5[i] = a4[i] = a3[i] = a2[i] = a1[i];
 	}
 
 	//clock()函数返回的是程序运行过程中耗掉得process time，也就是CPU time。
@@ -236,8 +354,23 @@ void TestOP()
 	HeapSort(a4, N);
 	int end4 = clock();
 
+	int begin5 = clock();
+	BubbleSort(a5, N);
+	int end5 = clock();
+
+	int begin6 = clock();
+	_QuickSort(a6, 0, N - 1);
+	int end6 = clock();
+
+	int begin7 = clock();
+	QuickSort(a6, 0, N - 1);
+	int end7 = clock();
+
 	printf("Time of InsertSort: %d\n", end1 - begin1);
 	printf("Time of ShellSort: %d\n", end2 - begin2);
 	printf("Time of SelectSort: %d\n", end3 - begin3);
 	printf("Time of HeapSort: %d\n", end4 - begin4);
+	printf("Time of BubbleSort: %d\n", end5 - begin5);
+	printf("Time of _QuickSort: %d\n", end6 - begin6);
+	printf("Time of QuickSort: %d\n", end7 - begin7);
 }
