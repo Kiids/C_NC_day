@@ -4,6 +4,7 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 void PrintArray(int* a, int n)
 {
@@ -184,7 +185,7 @@ void __BubbleSort(int* a, int n)
 void Test_BubbleSort()
 {
 	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
-	_BubbleSort(a, sizeof(a) / sizeof(int));
+	//_BubbleSort(a, sizeof(a) / sizeof(int));
 	__BubbleSort(a, sizeof(a) / sizeof(int));
 	PrintArray(a, sizeof(a) / sizeof(int));
 }
@@ -209,29 +210,6 @@ void TestBubbleSort()
 }
 
 // 快速排序
-int PartSort1(int* a, int left, int right)  // 左右指针法
-{
-	int key = a[right];
-	int key_index = right;
-	while (left < right)
-	{
-		while (left < right && a[left] <= key)
-			++left;
-		while (left < right && a[right] >= key)
-			--right;
-
-		if (left < right)
-		{
-			Swap(&a[left], &a[right]);
-			++left;
-			--right;
-		}
-	}
-
-	Swap(&a[left], &a[key_index]);
-	return left;
-}
-
 int GetMidIndex(int*a, int left, int right)  // 三数取中法优化
 {
 	int mid = left + (right - left) / 2;
@@ -253,6 +231,28 @@ int GetMidIndex(int*a, int left, int right)  // 三数取中法优化
 		else
 			return right;
 	}
+}
+
+int PartSort1(int* a, int left, int right)  // 左右指针法
+{
+	// 三数取中法优化
+	int mid = GetMidIndex(a, left, right);
+	Swap(&a[mid], &a[right]);
+
+	int key = a[right];
+	int key_index = right;
+	while (left < right)
+	{
+		while (left < right && a[left] <= key)
+			++left;
+		while (left < right && a[right] >= key)
+			--right;
+
+		Swap(&a[left], &a[right]);
+	}
+
+	Swap(&a[left], &a[key_index]);
+	return left;
 }
 
 int PartSort2(int* a, int left, int right)  // 挖坑法
@@ -277,12 +277,36 @@ int PartSort2(int* a, int left, int right)  // 挖坑法
 	return left;
 }
 
+int PartSort3(int* a, int left, int right)  // 前后指针法
+{
+	// 三数取中法优化
+	int mid = GetMidIndex(a, left, right);
+	Swap(&a[mid], &a[right]);
+
+	int key = a[right];
+	int prev = left - 1, cur = left;
+
+	while (cur < right)
+	{
+		if (a[cur] < key && ++prev != cur)
+			Swap(&a[prev], &a[cur]);;
+
+		++cur;
+	}
+	++prev;
+	Swap(&a[prev], &a[cur]);
+
+	return prev;
+}
+
 void _QuickSort(int *a, int left, int right)
 {
 	if (left >= right)
 		return;
 
-	int keyindex = PartSort2(a, left, right);
+	int keyindex = PartSort1(a, left, right);
+	//int keyindex = PartSort2(a, left, right);
+	//int keyindex = PartSort3(a, left, right);
 	_QuickSort(a, left, keyindex - 1);
 	_QuickSort(a, keyindex + 1, right);
 }
@@ -308,11 +332,152 @@ void QuickSort(int *a, int left, int right)
 void TestQuickSort()
 {
 	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
-	QuickSort(a, 0, sizeof(a) / sizeof(int) - 1);
+	//int a[] = { 1, 5, 9, 7, 6, 8 };
+	_QuickSort(a, 0, sizeof(a) / sizeof(int) - 1);
+	PrintArray(a, sizeof(a) / sizeof(int));
+}
+
+#include "Stack.h"
+void QuickSortNonR(int* a, int left, int right)  // 利用栈实现非递归快速排序
+{
+	Stack s;
+	StackInit(&s);
+	StackPush(&s, left);
+	StackPush(&s, right);
+
+	while (!StackEmpty(&s))
+	{
+		int end = StackTop(&s);
+		StackPop(&s);
+		int begin = StackTop(&s);
+		StackPop(&s);
+
+		int keyindex = PartSort3(a, begin, end);
+		if (begin < keyindex - 1)
+		{
+			StackPush(&s, begin);
+			StackPush(&s, keyindex - 1);
+		}
+		if (keyindex + 1 < end)
+		{
+			StackPush(&s, keyindex + 1);
+			StackPush(&s, end);
+		}
+	}
+}
+
+void TestQuickSortNonR()
+{
+	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
+	//int a[] = { 1, 5, 9, 7, 6, 8 };
+	QuickSortNonR(a, 0, sizeof(a) / sizeof(int) - 1);
 	PrintArray(a, sizeof(a) / sizeof(int));
 }
 
 // 归并排序
+void _MergeSort(int* a, int left, int right, int* tmp)
+{
+	if (left == right)
+		return;
+
+	int mid = left + (right - left) / 2;
+	// [left, mid] [mid + 1, right] 分别有序
+	_MergeSort(a, left, mid, tmp);
+	_MergeSort(a, mid + 1, right, tmp);
+
+	// [left, mid] [mid + 1, right] 归并到tmp[left, right]
+	int begin1 = left, end1 = mid;
+	int begin2 = mid + 1, end2 = right;
+	int i = left;
+	while (begin1 <= end1 && begin2 <= end2)
+	{
+		if (a[begin1] <= a[begin2])
+		{
+			tmp[i++] = a[begin1];
+			++begin1;
+		}
+		else
+		{
+			tmp[i++] = a[begin2];
+			++begin2;
+		}
+	}
+	while (begin1 <= end1)
+	{
+		tmp[i++] = a[begin1];
+		++begin1;
+	}
+	while (begin2 <= end2)
+	{
+		tmp[i++] = a[begin2];
+		++begin2;
+	}
+
+	memcpy(a + left, tmp + left, sizeof(int)*(i - left));
+}
+
+void MergeSort(int* a, int n)
+{
+	int* tmp = (int*)malloc(sizeof(int)*n);
+	_MergeSort(a, 0, n - 1, tmp);
+	free(tmp);
+}
+
+void TestMergeSort()
+{
+	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
+	//int a[] = { 1, 5, 9, 7, 6, 8 };
+	MergeSort(a, sizeof(a) / sizeof(int));
+	PrintArray(a, sizeof(a) / sizeof(int));
+}
+
+void MergeSortNonR(int* a, int n)  // 归并排序非递归
+{
+	int* tmp = (int*)malloc(sizeof(int)*n);
+
+	int gap = 1;
+	while (gap < n)
+	{
+		// [begin, end]
+		for (int begin = 0; begin < n; begin += 2 * gap)
+		{
+			// [begin, begin+gap-1] [begin+gap, begin+2*gap-1]
+			int begin1 = begin, end1 = begin + gap - 1;
+			if (end1 >= n)
+				end1 = n - 1;
+
+			int begin2 = begin + gap, end2 = begin + 2 * gap - 1;
+			if (end2 >= n)
+				end2 = n - 1;
+
+			int index = begin1;
+			while (begin1 <= end1 && begin2 <= end2)
+			{
+				if (a[begin1] <= a[begin2])
+					tmp[index++] = a[begin1++];
+				else
+					tmp[index++] = a[begin2++];
+			}
+
+			while (begin1 <= end1)
+				tmp[index++] = a[begin1++];
+			while (begin2 <= end2)
+				tmp[index++] = a[begin2++];
+		}
+		memcpy(a, tmp, sizeof(int)*n);
+
+		gap *= 2;
+	}
+	free(tmp);
+}
+
+void TestMergeSortNonR()
+{
+	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
+	//int a[] = { 1, 5, 9, 7, 6, 8 };
+	MergeSortNonR(a, sizeof(a) / sizeof(int));
+	PrintArray(a, sizeof(a) / sizeof(int));
+}
 
 // 一般算法的性能测试会测试release版的，因为最终发布的版本是release版
 void TestOP()

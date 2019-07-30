@@ -10,7 +10,10 @@ int main()
 	//Test_BubbleSort();
 	//TestBubbleSort();
 	//TestQuickSort();
-	TestOP();
+	//TestOP();
+	//TestQuickSortNonR();
+	TestMergeSort();
+	//TestMergeSortNonR();
 
 	system("pause");
 	return 0;
