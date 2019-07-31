@@ -50,6 +50,35 @@ void TestInsertSort()
 	PrintArray(a, sizeof(a) / sizeof(int));
 }
 
+// 优化为二分法插入排序
+void BinInsertSort(int* a, int n)
+{
+	for (int i = 1; i < n; ++i)
+	{
+		int tmp = a[i];
+		int left = 0, right = i - 1;
+		while (left <= right)
+		{
+			int mid = left + (right - left) / 2;
+			if (tmp > a[mid])
+				left = mid + 1;
+			else
+				right = mid - 1;
+		}
+		int j = 0;
+		for (j = i - 1; j >= left; j--)
+			a[j + 1] = a[j];
+		a[j + 1] = tmp;
+	}
+}
+
+void TestBinInsertSort()
+{
+	int a[] = { 0, 1, 5, 9, 6, 7, 8, 2, 4, 3 };
+	BinInsertSort(a, sizeof(a) / sizeof(int));
+	PrintArray(a, sizeof(a) / sizeof(int));
+}
+
 // 希尔排序
 void ShellSort(int* a, int n)
 {

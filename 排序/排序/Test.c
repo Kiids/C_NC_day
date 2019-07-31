@@ -12,8 +12,9 @@ int main()
 	//TestQuickSort();
 	//TestOP();
 	//TestQuickSortNonR();
-	TestMergeSort();
+	//TestMergeSort();
 	//TestMergeSortNonR();
+	TestBinInsertSort();
 
 	system("pause");
 	return 0;
